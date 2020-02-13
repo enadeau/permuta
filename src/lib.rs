@@ -8,7 +8,11 @@ struct Perm {
 }
 
 impl Perm {
-    fn patern_details(self)
+    fn new(values: Vec<usize>) -> Perm {
+        Perm { values }
+    }
+
+    fn pattern_details(&self)
         -> Vec<(Option<usize>, Option<usize>, usize, usize)> {
         let mut result = Vec::new();
         let mut index = 0;
@@ -29,6 +33,10 @@ impl Perm {
             index += 1;
         }
         result
+    }
+
+    fn len(&self) -> usize {
+        self.values.len()
     }
 }
 
