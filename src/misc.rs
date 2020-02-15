@@ -18,6 +18,7 @@ pub fn left_floor_and_ceiling(iterable: &Vec<usize>,
                               default_floor: Option<usize>,
                               default_ceiling: Option<usize>)
     -> Vec<FloorAndCeiling> {
+    if iterable.len() == 0 { return Vec::new() }
     let mut result: Vec<FloorAndCeiling> = Vec::new();
     let mut dq: collections::VecDeque<(usize, usize)> = collections::VecDeque::new();
     let mut smallest = iterable[0];
@@ -119,6 +120,11 @@ mod tests {
         assert_eq!(
             left_floor_and_ceiling(&iterable, None, None),
             expected
+        );
+
+        assert_eq!(
+            left_floor_and_ceiling(&vec![], None, None),
+            vec![]
         );
     }
 }
