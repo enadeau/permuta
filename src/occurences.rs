@@ -54,13 +54,13 @@ impl<'a> Iterator for OccurencesIterator<'a> {
         let (lfi, lci, lbp, ubp) = self.pattern_details[k];
         let lower_bound = lbp + match lfi {
             None => 0,
-            Some(i) => self.perm.values[self.occurrence_indices[i].unwrap()]
+            Some(i) => self.perm[self.occurrence_indices[i].unwrap()]
         };
         let upper_bound = match lci {
             None => self.perm.len(),
-            Some(i) => self.perm.values[self.occurrence_indices[i].unwrap()]
+            Some(i) => self.perm[self.occurrence_indices[i].unwrap()]
         } - ubp;
-        let element = self.perm.values[i];
+        let element = self.perm[i];
         if lower_bound <= element && element <= upper_bound {
             self.occurrence_indices[k] = Some(i);
             self.stack.push((i+1, k+1));

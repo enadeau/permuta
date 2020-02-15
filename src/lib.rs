@@ -1,3 +1,4 @@
+use std::ops::Index;
 mod misc;
 mod occurences;
 
@@ -17,16 +18,16 @@ impl Perm {
         let mut result = Vec::new();
         let mut index = 0;
         for fac_indices in &misc::left_floor_and_ceiling(&self.values, None, None) {
-            let base_element = self.values[index];
+            let base_element = self[index];
             let compiled = (fac_indices.floor,
                             fac_indices.ceiling,
                             match fac_indices.floor {
-                                None => self.values[index],
-                                Some(i) => base_element - self.values[i],
+                                None => self[index],
+                                Some(i) => base_element - self[i],
                             },
                             match fac_indices.ceiling {
-                                None => self.len() - self.values[index],
-                                Some(i) => self.values[i] - base_element,
+                                None => self.len() - self[index],
+                                Some(i) => self[i] - base_element,
                             }
                             );
             result.push(compiled);
@@ -35,7 +36,7 @@ impl Perm {
         result
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.values.len()
     }
 
@@ -44,10 +45,22 @@ impl Perm {
     }
 }
 
+impl Index<usize> for Perm {
+    type Output = usize;
+
+    fn index(&self, i: usize) -> &Self::Output {
+        match self.values.get(i) {
+            None => panic!("Perm index out of range"),
+            Some(v) => &v
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use occurences::Occurence;
+
     #[test]
     fn test_cont() {
         let perm = Perm::new(vec![2,0,1]);
@@ -97,4 +110,20 @@ mod tests {
             expected
         );
     }
+
+    #[test]
+    fn index() {
+        let perm = Perm::new(vec![5,3,0,4,2,1]);
+        assert_eq!(perm[0], 5);
+        assert_eq!(perm[1], 3);
+        assert_eq!(perm[5], 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "Perm index out of range")]
+    fn index_out_of_bound() {
+        let perm = Perm::new(vec![5,3,0,4,2,1]);
+        perm[6];
+    }
+
 }
