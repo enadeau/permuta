@@ -25,7 +25,7 @@ impl Perm {
                                 Some(i) => base_element - self.values[i],
                             },
                             match fac_indices.ceiling {
-                                None => self.values.len() - self.values[index],
+                                None => self.len() - self.values[index],
                                 Some(i) => self.values[i] - base_element,
                             }
                             );
@@ -47,16 +47,54 @@ impl Perm {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use occurences::Occurence;
     #[test]
     fn test_cont() {
         let perm = Perm::new(vec![2,0,1]);
         let patt = Perm::new(vec![5,3,0,4,2,1]);
-        let expected: Vec<Vec<usize>> = Vec::new();
+        let expected: Vec<Occurence> = vec![
+            Occurence::new(vec![0,1,3]),
+            Occurence::new(vec![0,2,3]),
+            Occurence::new(vec![0,2,4]),
+            Occurence::new(vec![0,2,5]),
+            Occurence::new(vec![1,2,4]),
+            Occurence::new(vec![1,2,5]),
+        ];
         assert_eq!(
-            perm.occurrences_in(&patt, &None, &None),
+            perm.occurrences_in(&patt).collect::<Vec<Occurence>>(),
             expected
         );
-    // list(Perm((2, 0, 1)).occurrences_in(Perm((5, 3, 0, 4, 2, 1))))
-    //         [(0, 1, 3), (0, 2, 3), (0, 2, 4), (0, 2, 5), (1, 2, 4), (1, 2, 5)]
+    }
+
+    #[test]
+    fn pattern_details() {
+        let expected = vec![(None, None, 0, 2), (Some(0), None, 1, 1)];
+        assert_eq!(
+            Perm::new(vec![0,1]).pattern_details(),
+            expected
+        );
+
+        let expected = vec![(None, None, 1, 1), (None, Some(0), 0, 1)];
+        assert_eq!(
+            Perm::new(vec![1,0]).pattern_details(),
+            expected
+        );
+
+        let expected = vec![
+            (None, None, 9, 1),
+            (None, Some(0), 2, 7),
+            (None, Some(1), 1, 1),
+            (Some(1), Some(0), 4, 3),
+            (Some(1), Some(3), 3, 1),
+            (Some(3), Some(0), 1, 2),
+            (Some(5), Some(0), 1, 1),
+            (Some(1), Some(4), 2, 1),
+            (None, Some(2), 0, 1),
+            (Some(1), Some(7), 1, 1),
+        ];
+        assert_eq!(
+            Perm::new(vec![9, 2, 1, 6, 5, 7, 8, 4, 0, 3]).pattern_details(),
+            expected
+        );
     }
 }
