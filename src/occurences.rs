@@ -21,37 +21,34 @@ pub struct OccurencesIterator<'a> {
     pub patt: &'a Perm,
     pattern_details: Vec<(Option<usize>, Option<usize>, usize, usize)>,
     occurrence_indices: Vec<Option<usize>>,
-    stack: Vec<(usize, usize)>,
+    stack: Vec<(usize, usize, usize, usize)>,
 }
 
 impl<'a> OccurencesIterator<'a> {
     pub fn new(perm: &'a Perm, patt: &'a Perm) -> OccurencesIterator<'a> {
         let occurrence_indices = vec![None; patt.len()];
         let pattern_details = patt.pattern_details();
-        OccurencesIterator {
+        let mut occ_it = OccurencesIterator {
             perm: perm,
             patt: patt,
             pattern_details: pattern_details,
             occurrence_indices: occurrence_indices,
-            stack: vec![(0,0)],
-        }
-    }
-}
-
-impl<'a> Iterator for OccurencesIterator<'a> {
-    type Item = Occurence;
-
-    fn next(&mut self) -> Option<Occurence> {
-        let (i, k) = match self.stack.pop() {
-            None => { return None; },
-            Some(t) => t
+            stack: Vec::new(),
         };
-        if k == self.patt.len() {
-            return Some(Occurence::from_option_vector(&self.occurrence_indices))
+        if patt.len() < perm.len() {
+            let (lower_bound, upper_bound) = occ_it.bounds(0);
+            let starting_state = (0,0,lower_bound,upper_bound);
+            occ_it.stack.push(starting_state);
         }
-        if i >= self.perm.len() { return self.next(); }
-        self.stack.push((i+1, k));
-        let (lfi, lci, lbp, ubp) = self.pattern_details[k];
+        occ_it
+    }
+
+    pub fn bounds(&self, num_item_matched: usize) -> (usize, usize) {
+        if num_item_matched == self.pattern_details.len() {
+            // Nothing left to match, return impossible bounds.
+            return (1,0);
+        }
+        let (lfi, lci, lbp, ubp) = self.pattern_details[num_item_matched];
         let lower_bound = lbp + match lfi {
             None => 0,
             Some(i) => self.perm[self.occurrence_indices[i].unwrap()]
@@ -60,10 +57,28 @@ impl<'a> Iterator for OccurencesIterator<'a> {
             None => self.perm.len(),
             Some(i) => self.perm[self.occurrence_indices[i].unwrap()]
         } - ubp;
+        (lower_bound, upper_bound)
+    }
+}
+
+impl<'a> Iterator for OccurencesIterator<'a> {
+    type Item = Occurence;
+
+    fn next(&mut self) -> Option<Occurence> {
+        let (i, k, lower_bound, upper_bound) = match self.stack.pop() {
+            None => { return None; },
+            Some(t) => t
+        };
+        if k == self.patt.len() {
+            return Some(Occurence::from_option_vector(&self.occurrence_indices))
+        }
+        if i >= self.perm.len() { return self.next(); }
+        self.stack.push((i+1, k, lower_bound, upper_bound));
         let element = self.perm[i];
         if lower_bound <= element && element <= upper_bound {
             self.occurrence_indices[k] = Some(i);
-            self.stack.push((i+1, k+1));
+            let (lower_bound, upper_bound) = self.bounds(k+1);
+            self.stack.push((i+1, k+1, lower_bound, upper_bound));
         }
         return self.next()
     }
@@ -84,13 +99,23 @@ mod tests {
         assert_eq!(
             empty_perm.occurrences_in(&perm).collect::<Vec<Occurence>>(),
             expected
-        );
+            );
 
         let expected: Vec<Occurence> = Vec::new();
         assert_eq!(
             perm.occurrences_in(&empty_perm).collect::<Vec<Occurence>>(),
             expected
-        );
+            );
+    }
+
+    #[test]
+    fn big_in_small() {
+        let perm = Perm::new(vec![1,0]);
+        let patt = Perm::new(vec![1,2,3,0]);
+        assert_eq!(
+            patt.occurrences_in(&perm).collect::<Vec<Occurence>>(),
+            vec![]
+            );
     }
 
     #[test]
@@ -105,7 +130,7 @@ mod tests {
         assert_eq!(
             patt.occurrences_in(&perm).collect::<Vec<Occurence>>(),
             expected
-        );
+            );
     }
 
     #[test]
@@ -123,6 +148,6 @@ mod tests {
         assert_eq!(
             patt.occurrences_in(&perm).collect::<Vec<Occurence>>(),
             expected
-        );
+            );
     }
 }
