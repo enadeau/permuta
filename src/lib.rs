@@ -13,6 +13,25 @@ impl Perm {
         Perm { values }
     }
 
+    pub fn len(&self) -> usize {
+        self.values.len()
+    }
+
+    pub fn contains(&self, patt: &Perm) -> bool {
+        match patt.occurrences_in(self).next() {
+            None => false,
+            Some(_) => true
+        }
+    }
+
+    pub fn contained_in(&self, perm: &Perm) -> bool {
+        perm.contains(self)
+    }
+
+    pub fn occurrences_in<'a>(&'a self, perm: &'a Perm) ->  occurences::OccurencesIterator {
+        occurences::OccurencesIterator::new(perm, self)
+    }
+
     fn pattern_details(&self)
         -> Vec<(Option<usize>, Option<usize>, usize, usize)> {
         let mut result = Vec::new();
@@ -34,14 +53,6 @@ impl Perm {
             index += 1;
         }
         result
-    }
-
-    pub fn len(&self) -> usize {
-        self.values.len()
-    }
-
-    pub fn occurrences_in<'a>(&'a self, perm: &'a Perm) ->  occurences::OccurencesIterator {
-        occurences::OccurencesIterator::new(perm, self)
     }
 }
 
@@ -126,4 +137,31 @@ mod tests {
         perm[6];
     }
 
+    #[test]
+    fn contains() {
+        assert!(Perm::new(vec![3,7,0,8,1,6,5,2,4])
+                .contains(&Perm::new(vec![3,7,0,8,1,6,5,2,4])));
+
+        assert!(Perm::new(vec![3,7,0,8,1,6,5,2,4])
+                  .contained_in(&Perm::new(vec![3,7,0,8,1,6,5,2,4])));
+        assert!(Perm::new(vec![]).contained_in(&Perm::new(vec![])));
+        assert!(Perm::new(vec![]).
+                contained_in(&Perm::new(vec![3,7,0,8,1,6,5,2,4])));
+        assert!(Perm::new(vec![0])
+                .contained_in(&Perm::new(vec![0])));
+        assert!(!Perm::new(vec![7,3,0,8,1,6,5,2,4])
+                .contained_in(&Perm::new(vec![3,7,0,8,1,6,5,2,4])));
+
+        assert!(!Perm::new(vec![0]).contained_in(&Perm::new(vec![])));
+        assert!(!Perm::new(vec![0,1]).contained_in(&Perm::new(vec![])));
+        assert!(!Perm::new(vec![0,1]).contained_in(&Perm::new(vec![0])));
+        assert!(!Perm::new(vec![1,0]).contained_in(&Perm::new(vec![0,1])));
+        assert!(!Perm::new(vec![0,1,2]).contained_in(&Perm::new(vec![0,1])));
+        assert!(!Perm::new(vec![1,0,2]).contained_in(&Perm::new(vec![0,1,3,4,2])));
+        assert!(!Perm::new(vec![0,1,2]).contained_in(&Perm::new(vec![2,1,3,0])));
+        assert!(!Perm::new(vec![2,1,3,0]).contained_in(&Perm::new(vec![2,0,3,1])));
+        assert!(!Perm::new(vec![0,2,1]).contained_in(&Perm::new(vec![2,0,1,3])));
+        assert!(!Perm::new(vec![2,0,1,3]).contained_in(&Perm::new(vec![5,3,2,7,1,0,6,4])));
+        assert!(!Perm::new(vec![0,1,2,3]).contained_in(&Perm::new(vec![4,7,5,1,6,2,3,0])));
+    }
 }
