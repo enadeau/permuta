@@ -35,7 +35,7 @@ impl<'a> OccurencesIterator<'a> {
             occurrence_indices: occurrence_indices,
             stack: Vec::new(),
         };
-        if patt.len() < perm.len() {
+        if patt.len() <= perm.len() {
             let (lower_bound, upper_bound) = occ_it.bounds(0);
             let starting_state = (0,0,lower_bound,upper_bound);
             occ_it.stack.push(starting_state);
@@ -65,6 +65,7 @@ impl<'a> Iterator for OccurencesIterator<'a> {
     type Item = Occurence;
 
     fn next(&mut self) -> Option<Occurence> {
+        println!("{:?}", self.stack);
         let (i, k, lower_bound, upper_bound) = match self.stack.pop() {
             None => { return None; },
             Some(t) => t
@@ -103,6 +104,10 @@ mod tests {
         ];
         assert_eq!(
             empty_perm.occurrences_in(&perm).collect::<Vec<Occurence>>(),
+            expected
+            );
+        assert_eq!(
+            empty_perm.occurrences_in(&empty_perm).collect::<Vec<Occurence>>(),
             expected
             );
 
@@ -152,6 +157,18 @@ mod tests {
         ];
         assert_eq!(
             patt.occurrences_in(&perm).collect::<Vec<Occurence>>(),
+            expected
+            );
+    }
+
+    #[test]
+    fn occurences_in_itself() {
+        let perm = Perm::new(vec![5,3,0,4,2,1]);
+        let expected: Vec<Occurence> = vec![
+            Occurence::new(vec![0,1,2,3,4,5]),
+        ];
+        assert_eq!(
+            perm.occurrences_in(&perm).collect::<Vec<Occurence>>(),
             expected
             );
     }
