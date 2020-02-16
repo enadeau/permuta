@@ -72,7 +72,12 @@ impl<'a> Iterator for OccurencesIterator<'a> {
         if k == self.patt.len() {
             return Some(Occurence::from_option_vector(&self.occurrence_indices))
         }
-        if i >= self.perm.len() { return self.next(); }
+        let elements_remaining = self.perm.len() - i;
+        let elements_needed = self.patt.len() - k;
+        // This state is bad, backtrack
+        if i >= self.perm.len() || elements_needed > elements_remaining {
+            return self.next();
+        }
         self.stack.push((i+1, k, lower_bound, upper_bound));
         let element = self.perm[i];
         if lower_bound <= element && element <= upper_bound {
