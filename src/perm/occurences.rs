@@ -1,4 +1,4 @@
-use crate::Perm;
+use super::Perm;
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -65,7 +65,6 @@ impl<'a> Iterator for OccurencesIterator<'a> {
     type Item = Occurence;
 
     fn next(&mut self) -> Option<Occurence> {
-        println!("{:?}", self.stack);
         let (i, k, lower_bound, upper_bound) = match self.stack.pop() {
             None => { return None; },
             Some(t) => t
@@ -91,7 +90,7 @@ impl<'a> Iterator for OccurencesIterator<'a> {
 }
 
 #[cfg(test)]
-mod tests {
+mod   tests {
     use super::*;
 
     #[test]

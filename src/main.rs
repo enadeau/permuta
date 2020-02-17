@@ -1,6 +1,4 @@
-extern crate permuta;
-
-use permuta::Perm;
+use permuta::perm::Perm;
 
 pub fn main() {
     let perm_inc = Perm::new(vec![0,1,2]);
