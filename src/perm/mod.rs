@@ -28,8 +28,19 @@ impl Perm {
         perm.contains(self)
     }
 
+    pub fn avoids(&self, basis: &Vec<Perm>) -> bool {
+        basis.iter().all(|patt| !self.contains(&patt))
+    }
+
     pub fn occurrences_in<'a>(&'a self, perm: &'a Perm) ->  occurences::OccurencesIterator {
         occurences::OccurencesIterator::new(perm, self)
+    }
+
+    pub fn insert_max(&self, index: usize) -> Perm {
+        let new_element = self.len();
+        let mut new_values = self.values.clone();
+        new_values.insert(index, new_element);
+        Perm::new(new_values)
     }
 
     fn pattern_details(&self)
@@ -163,5 +174,32 @@ mod tests {
         assert!(!Perm::new(vec![0,2,1]).contained_in(&Perm::new(vec![2,0,1,3])));
         assert!(!Perm::new(vec![2,0,1,3]).contained_in(&Perm::new(vec![5,3,2,7,1,0,6,4])));
         assert!(!Perm::new(vec![0,1,2,3]).contained_in(&Perm::new(vec![4,7,5,1,6,2,3,0])));
+    }
+
+    #[test]
+    fn avoids() {
+        let patt1 = Perm::new(vec![0,1]);
+        let patt2 = Perm::new(vec![2,0,1]);
+        let patt3 = Perm::new(vec![0,3,1,2]);
+        let patt4 = Perm::new(vec![0,1,2]);
+        assert!(!Perm::new(vec![5,3,0,4,2,1]).avoids(&vec![patt1, patt2]));
+        assert!(Perm::new(vec![5,3,0,4,2,1]).avoids(&vec![patt3, patt4]));
+    }
+
+    #[test]
+    fn insert_max() {
+        let perm = Perm::new(vec![0,1]);
+        assert_eq!(
+            perm.insert_max(0),
+            Perm::new(vec![2,0,1])
+        );
+        assert_eq!(
+            perm.insert_max(1),
+            Perm::new(vec![0,2,1])
+        );
+        assert_eq!(
+            perm.insert_max(2),
+            Perm::new(vec![0,1,2])
+        );
     }
 }
