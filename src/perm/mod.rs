@@ -13,6 +13,21 @@ impl Perm {
         Perm { values }
     }
 
+    /// Create a new permutation from a string.
+    /// # Examples
+    ///
+    /// ```
+    /// let perm = permuta::perm::Perm::from_string("0123");
+    ///
+    /// assert_eq!(perm, permuta::perm::Perm::new(vec![0,1,2,3]));
+    /// ```
+    pub fn from_string(str: &str) -> Perm {
+        let values: Vec<usize> = str.chars()
+            .map(|ch| ch.to_digit(10).expect("Invalid perm string") as usize)
+            .collect();
+        Perm::new(values)
+    }
+
     pub fn len(&self) -> usize {
         self.values.len()
     }
