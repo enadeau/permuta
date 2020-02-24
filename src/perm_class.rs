@@ -1,8 +1,10 @@
+use std::cmp::Ordering;
 use crate::perm::Perm;
 
 pub struct Av {
     basis: Vec<Perm>,
-    cache: Vec<Vec<Perm>>,
+    perms: Vec<Vec<Perm>>,
+    slots: Vec<Vec<Vec<usize>>>,
 }
 
 impl Av {
@@ -10,32 +12,51 @@ impl Av {
     pub fn new(basis: Vec<Perm>) -> Av {
         Av {
             basis: basis,
-            cache: vec![vec![Perm::new(vec![])]],
+            perms: vec![vec![Perm::new(vec![])]],
+            slots: vec![vec![vec![0]]],
         }
     }
 
     fn ensure_level(&mut self, level_number: usize) {
-        if self.cache.len() < level_number {
+        if self.perms.len() < level_number {
             self.ensure_level(level_number - 1);
         }
         if self.basis.len() == level_number {
             return
         }
         let mut new_level: Vec<Perm> = Vec::new();
-        let last_level = self.cache.last().unwrap();
-        let total_indices = self.cache.len();
-        for perm in last_level {
-            for index in 0..total_indices {
-                let new_perm = perm.insert_max(index);
-                if new_perm.avoids(&self.basis) { new_level.push(new_perm); }
+        let mut new_slots: Vec<Vec<usize>> = Vec::new();
+        let last_level_perms = self.perms.last().unwrap();
+        let last_level_slots = self.slots.last().unwrap();
+        for (perm, slot) in last_level_perms.iter().zip(last_level_slots) {
+            let mut good_slots: Vec<usize> = Vec::new();
+            for index in slot {
+                let new_perm = perm.insert_max(*index);
+                if new_perm.avoids(&self.basis) {
+                    new_level.push(new_perm);
+                    good_slots.push(*index);
+                }
             }
+            new_slots.append(&mut slot_expansion(&good_slots));
         }
-        self.cache.push(new_level)
+        self.perms.push(new_level);
+        self.slots.push(new_slots);
     }
 
     pub fn num_of_length(&mut self, length: usize) -> usize {
         self.ensure_level(length);
-        self.cache[length].len()
+        self.perms[length].len()
     }
 }
 
+fn slot_expansion(good_slots: &Vec<usize>) -> Vec<Vec<usize>> {
+    let mut all_new_slot = vec![Vec::<usize>::with_capacity(
+        good_slots.len()); good_slots.len()];
+    for (i, slot_index) in good_slots.iter().enumerate() {
+       for (j, slot_vec) in all_new_slot.iter_mut().enumerate() {
+           if i <= j { slot_vec.push(*slot_index); }
+           if i >= j { slot_vec.push(slot_index+1); }
+       }
+    }
+    all_new_slot
+}
