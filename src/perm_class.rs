@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use crate::perm::Perm;
 
 #[derive(PartialEq)]

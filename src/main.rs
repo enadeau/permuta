@@ -1,5 +1,4 @@
 use std::env;
-use permuta::perm::Perm;
 use permuta::perm_class::Av;
 
 pub fn main() {
