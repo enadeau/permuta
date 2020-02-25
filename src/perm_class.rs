@@ -1,6 +1,8 @@
 use std::cmp::Ordering;
 use crate::perm::Perm;
 
+#[derive(PartialEq)]
+#[derive(Debug)]
 pub struct Av {
     basis: Vec<Perm>,
     perms: Vec<Vec<Perm>>,
@@ -15,6 +17,25 @@ impl Av {
             perms: vec![vec![Perm::new(vec![])]],
             slots: vec![vec![vec![0]]],
         }
+    }
+
+    /// Returns a permutation class from a basis written as a string
+    ///
+    /// # Examples
+    /// ```
+    /// use permuta::perm::Perm;
+    /// use permuta::perm_class::Av;
+    ///
+    /// let class = Av::from_string("012_0213");
+    ///
+    /// assert_eq!(
+    ///     class,
+    ///     Av::new(vec![Perm::from_string("012"), Perm::from_string("0213")])
+    ///     );
+    /// ```
+    pub fn from_string(basis_str: &str) -> Av {
+        let basis: Vec<Perm> = basis_str.split("_").map(|p| Perm::from_string(p)).collect();
+        Av::new(basis)
     }
 
     fn ensure_level(&mut self, level_number: usize) {
